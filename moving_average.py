@@ -8,7 +8,7 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 df = pd.read_csv('data/widget_sales.csv')
 
-print(df.describe())
+#print(df.describe())
 
 fig, ax = plt.subplots()
 
@@ -24,14 +24,14 @@ fig.autofmt_xdate()
 plt.tight_layout()
 plt.savefig('widget_sales.png', dpi=300)
 
-print(adfuller(df['widget_sales']))
+#print(adfuller(df['widget_sales']))
 
 widget_sales_diff = np.diff(df['widget_sales'], n=1)
 
-print(widget_sales_diff)
+#print(widget_sales_diff)
 
 #ya es estacionario
-print(adfuller(widget_sales_diff))
+#print(adfuller(widget_sales_diff))
 
 plot_acf(widget_sales_diff, lags=30)
 
@@ -44,11 +44,9 @@ df_diff = pd.DataFrame(
     }
 )
 
-print(df_diff)
+#print(df_diff)
 
 train_size = int(0.9 * len(df_diff))
-
-#esque esta diferenciado por eso tiene 499
 
 train = df_diff[:train_size]
 test = df_diff[train_size:]
@@ -78,14 +76,78 @@ def rolling_forecast(
         train_len:int, 
         horizon:int, 
         window:int, 
-        method:str):
+        method:str) -> list:
     
-    pass
+    total_length = train_len + horizon    
+
+    if method == 'mean':
+        pred_mean = []
+
+        #si esta bien hecho
+        for i in range(train_len, total_length, window):
+            #este mean es para este y el que sigue
+            mean = np.mean(df[:i].values)
+            pred_mean.extend(mean for _ in range(window))
+        
+        #print(len(pred_mean))
+
+        return pred_mean
+    
+    elif method == 'last':
+        pred_last_value = []
+
+        #si esta bien hecho
+        for i in range(train_len, total_length, window):
+            last_value = df[:i].iloc[-1].values[0]
+
+            pred_last_value.extend(last_value for _ in range(window))
+        
+        return pred_last_value
+    
+    elif method == 'MA':
+        pred_MA = []
+
+        #si esta bien hecho
+        for i in range(train_len, total_length, window):
+
+            #en el primero toma solo el training y ya y despues va agregando mas del original
+
+            #se va de 2 en 2 prediciendo pero agarra el full size 
+
+                                       #p,d,q
+            model = SARIMAX(df[:i], order=(0,0,2))
+
+            res = model.fit()
+
+            #i ya es el predecido 1 + 1 es el predecido 2
+            #window esta afuera de las predicciones
+            predictions = res.get_prediction(0, i+window-1)
+
+            oos_pred = predictions.predicted_mean.iloc[-window:]
+
+            pred_MA.extend(oos_pred)
+
+        #print(len(pred_MA))
+        
+
+        return pred_MA
+
+
+
+pred_df = test.copy()
+
 
 TRAIN_LEN = len(train)
 HORIZON = len(test)
 WINDOW = 2
 
-rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='mean')
-rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='last')
-rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='MA')
+pred_mean = rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='mean')
+pred_last_value = rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='last')
+pred_MA = rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='MA')
+
+pred_df['pred_mean'] = pred_mean
+pred_df['pred_last_value'] = pred_last_value
+pred_df['pred_MA'] = pred_MA
+
+print(pred_df)
+#print(test)
