@@ -1,0 +1,91 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+
+df = pd.read_csv('data/widget_sales.csv')
+
+print(df.describe())
+
+fig, ax = plt.subplots()
+
+ax.plot(df['widget_sales'])
+ax.set_xlabel('Time')
+ax.set_ylabel('Widget sales (k$)')
+
+plt.xticks(
+    [0, 30, 57, 87, 116, 145, 175, 204, 234, 264, 293, 323, 352, 382, 409, 439, 468, 498], 
+    ['Jan 2019', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan 2020', 'Feb', 'Mar', 'Apr', 'May', 'Jun'])
+
+fig.autofmt_xdate()
+plt.tight_layout()
+plt.savefig('widget_sales.png', dpi=300)
+
+print(adfuller(df['widget_sales']))
+
+widget_sales_diff = np.diff(df['widget_sales'], n=1)
+
+print(widget_sales_diff)
+
+#ya es estacionario
+print(adfuller(widget_sales_diff))
+
+plot_acf(widget_sales_diff, lags=30)
+
+#ma(2)
+plt.savefig('acf_widget_sales_diff.png',dpi=300)
+
+df_diff = pd.DataFrame(
+    {
+        'widget_sales_diff':widget_sales_diff
+    }
+)
+
+print(df_diff)
+
+train_size = int(0.9 * len(df_diff))
+
+#esque esta diferenciado por eso tiene 499
+
+train = df_diff[:train_size]
+test = df_diff[train_size:]
+
+fig, (ax1, ax2) = plt.subplots(nrows=2,ncols=1,sharex=True)
+
+ax1.plot(df['widget_sales'])
+ax1.set_ylabel('Widget sales (k$)')
+ax1.axvspan(450, 499, color='#808080', alpha=0.2)
+
+ax2.plot(df_diff['widget_sales_diff'])
+ax2.set_xlabel('Time')
+ax2.set_ylabel('Derivative Widget sales')
+ax2.axvspan(449, 498, color='#808080', alpha=0.2)
+
+plt.xticks(
+    ticks=[0, 30, 57, 87, 116, 145, 175, 204, 234, 264, 293, 323, 352, 382, 409, 439, 468, 498],
+    labels=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', '2020', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+)
+
+fig.autofmt_xdate()
+plt.tight_layout()
+#plt.show()
+
+def rolling_forecast(
+        df:pd.DataFrame, 
+        train_len:int, 
+        horizon:int, 
+        window:int, 
+        method:str):
+    
+    pass
+
+TRAIN_LEN = len(train)
+HORIZON = len(test)
+WINDOW = 2
+
+rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='mean')
+rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='last')
+rolling_forecast(df_diff, TRAIN_LEN, HORIZON, WINDOW, method='MA')
