@@ -7,6 +7,7 @@ from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 
 df = pd.read_csv('data/widget_sales.csv')
 
@@ -187,15 +188,15 @@ df['pred_widget_sales'] = pd.Series()
 
 #este es el de la relidad!
 
-df.loc[450:,'pred_widget_sales'] = df['widget_sales'].iloc[449] + pred_df['pred_MA'].cumsum().values
+df.loc[450:,'pred_widget_sales'] = df['widget_sales'].iloc[450] + pred_df['pred_MA'].cumsum().values
 
-print(df.loc[450:,'pred_widget_sales'])
+#print(df.loc[450:,'pred_widget_sales'])
 
 #print(type(pred_df['pred_MA'].cumsum().values))
 #print(type(df['widget_sales'].iloc[450]))
 
 
-print(df)
+#print(df)
 
 plt.close('all')
 
@@ -228,8 +229,10 @@ fig.autofmt_xdate()
 plt.tight_layout()
 
 plt.savefig('predictions.png', dpi=300)
-#plt.show()
 
 #450 - 499
-print(pred_df)
+#print(pred_df)
 
+print(mean_absolute_error(df['widget_sales'][450:], df['pred_widget_sales'][450:]))
+
+#2320 usd on average error
