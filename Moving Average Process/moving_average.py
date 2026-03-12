@@ -236,3 +236,8 @@ plt.savefig('predictions.png', dpi=300)
 print(mean_absolute_error(df['widget_sales'][450:], df['pred_widget_sales'][450:]))
 
 #2320 usd on average error
+
+#autorregressive is random walk si se acorta y puede tener drift o no hay mas informacion para hacer predicciones, 
+#no se colapsa y solo se mueve random!
+
+#estas checando que modelo entra si
