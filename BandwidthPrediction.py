@@ -20,8 +20,6 @@ from typing import Union
 
 from tqdm import tqdm
 
-
-
 df = pd.read_csv('data/bandwidth.csv')
 
 print(df)
@@ -42,7 +40,6 @@ plt.xticks(
 
 fig.autofmt_xdate()
 plt.tight_layout()
-
 
 plt.savefig('bandwidth.png', dpi=300)
 
