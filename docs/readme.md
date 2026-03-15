@@ -22,5 +22,12 @@ Once I was sure the model is a good fit for the data I made predictions.
 
 ![ale](pred.png)
 
+The predictions are better than the baseline and they are made in non differentiated space as ARMA process.
+
+This is the MAPE Mean Absolute Percentage Error:
+
+- mape for naive: 11.561658552433654
+- mape for ARIMA(3,2,3): 1.7216538736432183
+
 
 
