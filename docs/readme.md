@@ -16,5 +16,11 @@ Then I made a QQ Plot to analyze residuals from the model to make sure they look
 
 ![ale](diagnostics.png)
 
+Then I made the Ljung-Box test of autocorrelation in residuals to make sure there are no autocorrelation in residuals.
+
+Once I was sure the model is a good fit for the data I made predictions.
+
+![ale](pred.png)
+
 
 
