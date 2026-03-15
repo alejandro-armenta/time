@@ -12,3 +12,9 @@ Then I fitted multiple arima models with p (lags) past values and q(lags) error 
 
 I chose the model with the lowest AIC which is the ARIMA(3,2,3).
 
+Then I made a QQ Plot to analyze residuals from the model to make sure they look like white noise and uncorrelated.
+
+![ale](diagnostics.png)
+
+
+
