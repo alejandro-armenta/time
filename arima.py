@@ -104,6 +104,7 @@ model = SARIMAX(train, order=(3,2,3))
 model_fit = model.fit()
 
 model_fit.plot_diagnostics(figsize=(10,8))
+plt.tight_layout()
 plt.savefig('diagnostics.png', dpi=300)
 
 df_test = acorr_ljungbox(model_fit.resid, np.arange(1,11,1))
