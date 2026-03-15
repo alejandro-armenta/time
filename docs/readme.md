@@ -6,7 +6,7 @@ for Johnson and Johnson company.
 
 I first made the Augmented Dickey-Fuller unit root test to check stationarity of the data and get the differencing term which is 2.
 
-![ale](../jj.png)
+![ale](jj.png)
 
 Then I fitted multiple arima models with p (lags) past values and q(lags) error terms. and compared them using the Akaike Information Criterion (AIC).
 
