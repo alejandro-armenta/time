@@ -140,7 +140,7 @@ fig.autofmt_xdate()
 
 plt.tight_layout()
 
-plt.savefig('pred.png')
+plt.savefig('pred.png', dpi=300)
 
 def mape(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
