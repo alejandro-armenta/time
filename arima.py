@@ -18,12 +18,28 @@ import pandas as pd
 df = pd.read_csv('data/air-passengers.csv')
 train = df['Passengers'][:-12]
 
-sarima = SARIMAX(train, order=(2,1,1), seasonal_order=(1,1,2,12), simple_differencing=False)
+ARIMA_model = SARIMAX(train, order=(11,2,3), simple_differencing=False)
 
-fit = sarima.fit(disp=False)
+fit = ARIMA_model.fit(disp=False)
 
 fit.plot_diagnostics(figsize=(10,8))
-plt.savefig('diagnostics_sarima.png')
+plt.tight_layout()
+plt.savefig('diagnostics_arima.png')
 
 print(acorr_ljungbox(fit.resid, np.arange(1,11,1)))
+
+#this means that the arima model is not capturing all the information from the data
+
+test = df[-12:]
+
+test['naive_seasonal'] = df['Passengers'][120:132].values
+
+
+a = fit.get_prediction(132,143).predicted_mean
+
+test['ARIMA_pred'] = a
+
+print(test)
+
+test.to_csv('forecasts.csv', index=True)
 
