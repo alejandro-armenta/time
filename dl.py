@@ -6,6 +6,8 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
+from sklearn.preprocessing import MinMaxScaler
+
 print(tf.__version__)
 
 print(tf.config.list_physical_devices('GPU'))
@@ -83,6 +85,28 @@ plt.savefig('cos.png',dpi=300)
 
 df.drop(['date_time'], axis=1, inplace=True)
 
-print(df)
+n = len(df)
 
+train_df = df[:int(n*0.7)]
+val_df = df[int(n*0.7):int(n*0.9)]
+test_df = df[int(n*0.9):]
 
+#0 1 scaling
+
+scaler = MinMaxScaler()
+
+scaler.fit(train_df)
+
+print(train_df)
+
+train_df[train_df.columns] = scaler.transform(train_df[train_df.columns])
+val_df[val_df.columns] = scaler.transform(val_df[val_df.columns])
+test_df[test_df.columns] = scaler.transform(test_df[test_df.columns])
+
+print(train_df)
+print(val_df)
+print(test_df)
+
+train_df.to_csv('train.csv',index=True)
+val_df.to_csv('val.csv',index=True)
+test_df.to_csv('test.csv',index=True)
