@@ -75,15 +75,41 @@ class DataWindow():
         return inputs,labels
 
     def plot(self, model=None, plot_col='traffic_volume', max_subplots=3):
+        
+        inputs, labels = self.sample_batch
 
         plt.figure(figsize=(12,8))
 
-        
+        plot_col_index = self.column_indices[plot_col]
 
-        plt.show()
-        
+        max_n = min(max_subplots, len(inputs))
 
+        for n in range(max_n):
+            plt.subplot(3,1, n+1)
+            
+            plt.ylabel(f'{plot_col}')
+
+            plt.plot(self.input_indices, inputs[n,:,plot_col_index], label='Inputs', marker='.', zorder=-10)
+
+            if self.label_columns:
+                label_col_index = self.label_columns_indices.get(plot_col, None)
+            else:
+                label_col_index = plot_col_index
+
+            if label_col_index is None:
+                continue
+
+            plt.scatter(self.label_indices, labels[n,:,label_col_index], edgecolors='k', marker='s', label='Labels', c='green', s=64)
+
+            if model is not None:
+                predictions = model(inputs)
+                #point size!
+                plt.scatter(self.label_indices, predictions[n,:,label_col_index], edgecolors='k', marker='X', label='Predictions', c='red', s=64)
+            
+            if n == 0:
+                plt.legend()
         
+        plt.xlabel('Time')
 
 dw = DataWindow(input_width=1,label_width=1,shift=1,label_columns=['traffic_volume'])
 
