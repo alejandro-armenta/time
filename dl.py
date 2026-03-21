@@ -110,3 +110,13 @@ print(test_df)
 train_df.to_csv('train.csv',index=True)
 val_df.to_csv('val.csv',index=True)
 test_df.to_csv('test.csv',index=True)
+
+#data window
+
+#batch size es de 32
+#384 batches
+
+#las shufleas por batch 
+
+#las data windows
+
