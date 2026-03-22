@@ -1,22 +1,16 @@
 import tensorflow as tf
+
+from tensorflow.keras import Model
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 tf.random.set_seed(42)
 
-#es por hora!
-#son un dia!
-
-#el shift es 24
-
 train_df = pd.read_csv('train.csv', index_col=0)
 val_df = pd.read_csv('val.csv', index_col=0)
 test_df = pd.read_csv('test.csv', index_col=0)
-
-#print(train_df)
-#print(val_df)
-#print(test_df)
 
 class DataWindow():
 
@@ -65,6 +59,7 @@ class DataWindow():
 
             #matriz labels_width * batch_size
             labels = tf.stack(
+                #esto es para multioutput - matriz batch size * labels width,  
                 [labels[:,:,self.column_indices[name]] for name in self.label_columns],
                 axis=-1
             )
@@ -72,10 +67,11 @@ class DataWindow():
         inputs.set_shape([None, self.input_width, None])            
         labels.set_shape([None, self.label_width, None])
 
-        return inputs,labels
+        return inputs, labels
 
     def plot(self, model=None, plot_col='traffic_volume', max_subplots=3):
-        
+        #cuando veas data va a ser del entrenamiento!
+
         inputs, labels = self.sample_batch
 
         plt.figure(figsize=(12,8))
@@ -111,7 +107,75 @@ class DataWindow():
         
         plt.xlabel('Time')
 
-dw = DataWindow(input_width=1,label_width=1,shift=1,label_columns=['traffic_volume'])
+    def make_dataset(self, data):
+        data = np.array(data, dtype=np.float32)
 
-dw.plot()
-#print(dw.split_to_inputs_labels())
+        ds = tf.keras.preprocessing.timeseries_dataset_from_array(
+            data=data,
+            targets=None,
+            sequence_length=self.total_window_size,
+            sequence_stride=1,
+            shuffle=False,
+            batch_size=32
+            )
+        
+        ds = ds.map(self.split_to_inputs_labels)
+
+        return ds
+
+    @property
+    def train(self):
+        return self.make_dataset(self.train_df)
+    
+    @property
+    def val(self):
+        return self.make_dataset(self.val_df)
+    
+    @property
+    def test(self):
+        return self.make_dataset(self.test_df)
+    
+    @property
+    def sample_batch(self):
+        result = getattr(self,'_sample_batch',None)
+
+        if result is None:
+            result = next(iter(self.train))
+            self._sample_batch = result
+
+        return result
+    
+#single step baseline 
+singel_step_window = DataWindow(input_width=1,label_width=1,shift=1,label_columns=['traffic_volume'])
+
+
+class Baseline(Model):
+
+    def __init__(self, label_index=None):
+        super().__init__()
+        self.label_index = label_index
+
+    def call(self, inputs):
+        if self.label_index is None:
+            return inputs
+        
+        elif isinstance(self.label_index, list):
+
+            tensors = []
+            for index in self.label_index:
+                result = inputs[:,:,index]
+                result = result[:,:,tf.newaxis]
+                tensors.append(result)
+            
+            return tf.concat(tensors, axis=-1)
+
+
+        result = inputs[:,:,self.label_index]
+        return result[:,:,tf.newaxis]
+
+        
+
+a = Baseline()
+
+print(a(tf.constant([[1,2],[2,3]], dtype=tf.float32)))
+    
