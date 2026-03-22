@@ -2,11 +2,15 @@ import tensorflow as tf
 
 from tensorflow.keras import Model
 
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 tf.random.set_seed(42)
+
+#el ploting es con el train_df
+
 
 train_df = pd.read_csv('train.csv', index_col=0)
 val_df = pd.read_csv('val.csv', index_col=0)
@@ -45,21 +49,13 @@ class DataWindow():
         
     def split_to_inputs_labels(self, features):
         
-        #features   batches * inputs + labels * names
-
-        #son 2 cubos
-
         inputs = features[:,self.input_slice,:]
         labels = features[:,self.labels_slice,:]
 
+        #tiene que ser una lista siempre!
         if self.label_columns is not None:
             
-            #batch size * inputs_width * inputs names
-            #batch size * labels_width * labels names
-
-            #matriz labels_width * batch_size
             labels = tf.stack(
-                #esto es para multioutput - matriz batch size * labels width,  
                 [labels[:,:,self.column_indices[name]] for name in self.label_columns],
                 axis=-1
             )
@@ -97,10 +93,12 @@ class DataWindow():
 
             plt.scatter(self.label_indices, labels[n,:,label_col_index], edgecolors='k', marker='s', label='Labels', c='green', s=64)
 
+            
             if model is not None:
                 predictions = model(inputs)
                 #point size!
                 plt.scatter(self.label_indices, predictions[n,:,label_col_index], edgecolors='k', marker='X', label='Predictions', c='red', s=64)
+            
             
             if n == 0:
                 plt.legend()
@@ -115,7 +113,7 @@ class DataWindow():
             targets=None,
             sequence_length=self.total_window_size,
             sequence_stride=1,
-            shuffle=False,
+            shuffle=True,
             batch_size=32
             )
         
@@ -145,10 +143,6 @@ class DataWindow():
 
         return result
     
-#single step baseline 
-singel_step_window = DataWindow(input_width=1,label_width=1,shift=1,label_columns=['traffic_volume'])
-
-
 class Baseline(Model):
 
     def __init__(self, label_index=None):
@@ -173,9 +167,15 @@ class Baseline(Model):
         result = inputs[:,:,self.label_index]
         return result[:,:,tf.newaxis]
 
+class MultiStepLastBaseline(Model):
+    def __init__(self, label_index=None):
+        super().__init__()
+        self.label_index = label_index
+
+    def call(self, inputs):
+
+        if self.label_index is None:
+            return tf.tile(inputs[:,-1:,:],[1,24,1])
+
+        return tf.tile(inputs[:,-1:,self.label_index:],[1,24,1])
         
-
-a = Baseline()
-
-print(a(tf.constant([[1,2],[2,3]], dtype=tf.float32)))
-    
